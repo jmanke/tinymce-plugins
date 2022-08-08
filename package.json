@@ -1,0 +1,22 @@
+{
+  "name": "@didyoumeantoast/tinymce-plugins",
+  "version": "1.0.3",
+  "description": "Custom plugins for tinymce",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": "git@github.com:jmanke/tinymce-plugins.git",
+  "author": "Jeff Manke <jeffman879@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html",
+    "build:npm": "npx tsc"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.5",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {}
+}
