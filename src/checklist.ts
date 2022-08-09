@@ -54,10 +54,16 @@ export default function checklist(editor, url) {
     const end = rootNode(editor.selection.getEnd(), 'BODY')
     let curr = start
 
+    const range = editor.selection.getSel()
+
     const checkListItems = new Set()
     do {
       const items = curr.querySelectorAll('.tox-checklist li')
-      items.forEach((item) => checkListItems.add(item))
+      items.forEach((item) => {
+        if (range.containsNode(item, true)) {
+          checkListItems.add(item)
+        }
+      })
 
       curr = curr.nextSibling
     } while (curr && curr !== end.nextSibling)
