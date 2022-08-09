@@ -1,20 +1,40 @@
 export default function checklist(editor, url) {
   let checklistBtn
 
+  function rootNode(element, parentTag) {
+    if (!element) {
+      return
+    }
+
+    let curr = element
+    while (curr.parentElement.nodeName !== parentTag) {
+      curr = curr.parentElement
+    }
+
+    return curr
+  }
+
   function createChecklist() {
     const ul = document.createElement('ul')
     ul.classList.add('tox-checklist')
 
     // gather elements in between start and end
-    const start = editor.selection.getStart()
-    const end = editor.selection.getEnd()
+    let start = rootNode(editor.selection.getStart(), 'BODY')
+    let end = rootNode(editor.selection.getEnd(), 'BODY')
     let curr = start
 
     const nodesToRemove = []
 
     do {
       const li = document.createElement('li')
-      li.innerHTML = curr.innerHTML
+      if (curr.nodeName === 'P') {
+        li.textContent = curr.textContent
+      } else {
+        li.appendChild(curr.cloneNode(true))
+      }
+      const br = document.createElement('br')
+      br.setAttribute('data-mce-bogus', '1')
+      li.appendChild(br)
       ul.appendChild(li)
 
       nodesToRemove.push(curr)
@@ -30,19 +50,24 @@ export default function checklist(editor, url) {
 
   function removeChecklist() {
     // gather elements in between start and end
-    const start = editor.selection.getStart()
-    const end = editor.selection.getEnd()
+    const start = rootNode(editor.selection.getStart(), 'BODY')
+    const end = rootNode(editor.selection.getEnd(), 'BODY')
     let curr = start
 
+    const checkListItems = new Set()
     do {
-      const next = curr.nextSibling
-      const parentNode = curr.parentElement
-      const splitNode = editor.dom.split(parentNode, curr)
+      const items = curr.querySelectorAll('.tox-checklist li')
+      items.forEach((item) => checkListItems.add(item))
+
+      curr = curr.nextSibling
+    } while (curr && curr !== end.nextSibling)
+
+    checkListItems.forEach((item: any) => {
+      const parentNode = item.parentElement
+      const splitNode = editor.dom.split(parentNode, item)
       const p = document.createElement('p')
       editor.dom.replace(p, splitNode, true)
-
-      curr = next
-    } while (curr && curr !== end.nextSibling)
+    })
 
     editor.focus()
   }
