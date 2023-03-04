@@ -1,81 +1,83 @@
 export default function checklist(editor, url) {
-  let checklistBtn
+  let checklistBtn;
 
   function rootNode(element, parentTag) {
     if (!element) {
-      return
+      return;
     }
 
-    let curr = element
+    let curr = element;
     while (curr.parentElement.nodeName !== parentTag) {
-      curr = curr.parentElement
+      curr = curr.parentElement;
     }
 
-    return curr
+    return curr;
   }
 
   function createChecklist() {
-    const ul = document.createElement('ul')
-    ul.classList.add('tox-checklist')
+    const ul = document.createElement("ul");
+    ul.classList.add("tox-checklist");
 
     // gather elements in between start and end
-    let start = rootNode(editor.selection.getStart(), 'BODY')
-    let end = rootNode(editor.selection.getEnd(), 'BODY')
-    let curr = start
+    let start = rootNode(editor.selection.getStart(), "BODY");
+    let end = rootNode(editor.selection.getEnd(), "BODY");
+    let curr = start;
 
-    const nodesToRemove = []
+    const nodesToRemove = [];
 
     do {
-      const li = document.createElement('li')
-      if (curr.nodeName === 'P') {
-        li.textContent = curr.textContent
+      const li = document.createElement("li");
+      if (curr.nodeName === "P") {
+        li.textContent = curr.textContent;
       } else {
-        li.appendChild(curr.cloneNode(true))
+        li.appendChild(curr.cloneNode(true));
       }
-      const br = document.createElement('br')
-      br.setAttribute('data-mce-bogus', '1')
-      li.appendChild(br)
-      ul.appendChild(li)
+      const br = document.createElement("br");
+      br.setAttribute("data-mce-bogus", "1");
+      li.appendChild(br);
+      ul.appendChild(li);
 
-      nodesToRemove.push(curr)
-      curr = curr.nextSibling
-    } while (curr && curr !== end.nextSibling)
+      nodesToRemove.push(curr);
+      curr = curr.nextSibling;
+    } while (curr && curr !== end.nextSibling);
 
-    editor.dom.replace(ul, start, false)
+    editor.dom.replace(ul, start, false);
 
-    nodesToRemove.forEach((node) => editor.dom.remove(node))
+    nodesToRemove.forEach((node) => editor.dom.remove(node));
 
-    editor.focus()
+    editor.setDirty(true);
+    editor.focus();
   }
 
   function removeChecklist() {
     // gather elements in between start and end
-    const start = rootNode(editor.selection.getStart(), 'BODY')
-    const end = rootNode(editor.selection.getEnd(), 'BODY')
-    let curr = start
+    const start = rootNode(editor.selection.getStart(), "BODY");
+    const end = rootNode(editor.selection.getEnd(), "BODY");
+    let curr = start;
 
-    const range = editor.selection.getSel()
+    const range = editor.selection.getSel();
 
-    const checkListItems = new Set()
+    const checkListItems = new Set();
     do {
-      const items = curr.querySelectorAll('.tox-checklist li')
+      const items = curr.querySelectorAll(".tox-checklist li");
       items.forEach((item) => {
         if (range.containsNode(item, true)) {
-          checkListItems.add(item)
+          checkListItems.add(item);
         }
-      })
+      });
 
-      curr = curr.nextSibling
-    } while (curr && curr !== end.nextSibling)
+      curr = curr.nextSibling;
+    } while (curr && curr !== end.nextSibling);
 
     checkListItems.forEach((item: any) => {
-      const parentNode = item.parentElement
-      const splitNode = editor.dom.split(parentNode, item)
-      const p = document.createElement('p')
-      editor.dom.replace(p, splitNode, true)
-    })
+      const parentNode = item.parentElement;
+      const splitNode = editor.dom.split(parentNode, item);
+      const p = document.createElement("p");
+      editor.dom.replace(p, splitNode, true);
+    });
 
-    editor.focus()
+    editor.setDirty(true);
+    editor.focus();
   }
 
   /**
@@ -85,61 +87,63 @@ export default function checklist(editor, url) {
    */
   function _onAction() {
     if (checklistBtn.isActive()) {
-      removeChecklist()
-      return
+      removeChecklist();
+      return;
     }
 
-    createChecklist()
+    createChecklist();
   }
 
   function _onSetup(btn) {
-    checklistBtn = btn
+    checklistBtn = btn;
   }
 
   // Define the Toolbar button
-  editor.ui.registry.addToggleButton('checklist', {
-    icon: 'checklist',
-    tooltip: 'Insert check list',
+  editor.ui.registry.addToggleButton("checklist", {
+    icon: "checklist",
+    tooltip: "Insert check list",
     onAction: _onAction,
     onSetup: _onSetup,
-  })
+  });
 
-  editor.on('click', function (event) {
+  editor.on("click", function (event) {
     if (event.offsetX >= 0) {
-      return
+      return;
     }
-    const node = event.composedPath()?.[0]
-    const parent = node?.parentElement
+    const node = event.composedPath()?.[0];
+    const parent = node?.parentElement;
 
     if (!parent) {
-      return
+      return;
     }
 
-    if (parent.className === 'tox-checklist') {
+    if (parent.className === "tox-checklist") {
       if (
-        node.nodeName === 'LI' &&
-        node.className === 'tox-checklist--checked'
+        node.nodeName === "LI" &&
+        node.className === "tox-checklist--checked"
       ) {
-        node.className = ''
-      } else if (node.nodeName === 'LI' && node.className === '') {
-        node.className = 'tox-checklist--checked'
+        node.className = "";
+        editor.setDirty(true);
+      } else if (node.nodeName === "LI" && node.className === "") {
+        node.className = "tox-checklist--checked";
+        editor.setDirty(true);
       }
     }
-  })
+  });
 
-  editor.on('nodeChange', function (event) {
-    const parent = event.element?.parentElement
+  editor.on("nodeChange", function (event) {
+    const parent = event.element?.parentElement;
 
     if (!parent) {
-      return
+      return;
     }
 
-    const isChecklist = parent.className.search('tox-checklist') !== -1
+    const isChecklist = parent.className.search("tox-checklist") !== -1;
 
     if (isChecklist) {
-      checklistBtn.setActive(true)
+      checklistBtn.setActive(true);
     } else {
-      checklistBtn.setActive(false)
+      checklistBtn.setActive(false);
     }
-  })
+  });
 }
